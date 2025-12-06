@@ -1,36 +1,43 @@
-// server.js
 const express = require('express');
 const http = require('http');
 const { Server } = require("socket.io");
 
 const app = express();
 const server = http.createServer(app);
+
+// Socket.io Ayarları - CORS SORUNUNU ÇÖZEN KISIM BURASI
 const io = new Server(server, {
-  cors: { origin: "*" } // Tüm bağlantılara izin ver (geliştirme aşaması için)
+  cors: {
+    origin: "*",  // Yıldız (*) demek: "Kim gelirse gelsin kabul et" demektir.
+    methods: ["GET", "POST"],
+    credentials: false // Bu ayar önemli, * kullanırken false olmalı.
+  }
+});
+
+app.get('/', (req, res) => {
+  res.send('Netflix Party Sunucusu Çalışıyor! (CORS Aktif)');
 });
 
 io.on('connection', (socket) => {
-  console.log('Bir kullanıcı bağlandı:', socket.id);
+  console.log('✅ Biri bağlandı! ID:', socket.id);
 
-  // Birisi videoyu oynattığında
   socket.on('play', (data) => {
-    console.log('Oynatılıyor', data);
-    socket.broadcast.emit('play', data); // Mesajı gönderen hariç herkese ilet
+    console.log('Oynat komutu dağıtılıyor');
+    socket.broadcast.emit('play', data);
   });
 
-  // Birisi videoyu durdurduğunda
   socket.on('pause', (data) => {
-    console.log('Durduruldu', data);
+    console.log('Durdur komutu dağıtılıyor');
     socket.broadcast.emit('pause', data);
   });
 
-  // Birisi süreyi değiştirdiğinde (ileri/geri sarma)
   socket.on('seek', (data) => {
-    console.log('Süre değişti', data);
+    console.log('Süre değiştirme komutu dağıtılıyor');
     socket.broadcast.emit('seek', data);
   });
 });
 
-server.listen(3000, () => {
-  console.log('Sunucu 3000 portunda çalışıyor');
+const PORT = process.env.PORT || 3000;
+server.listen(PORT, () => {
+  console.log(`Sunucu ${PORT} portunda dinleniyor...`);
 });
