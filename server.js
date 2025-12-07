@@ -35,9 +35,16 @@ io.on('connection', (socket) => {
     console.log('Süre değiştirme komutu dağıtılıyor');
     socket.broadcast.emit('seek', data);
   });
+  // --- CHAT KISMI ---
+  socket.on('chatMessage', (msg) => {
+    console.log('Mesaj geldi:', msg);
+    // Mesajı herkese (gönderen dahil) yay
+    io.emit('chatMessage', msg); 
+  });
 });
 
 const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => {
   console.log(`Sunucu ${PORT} portunda dinleniyor...`);
 });
+
